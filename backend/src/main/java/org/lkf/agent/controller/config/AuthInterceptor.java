@@ -9,6 +9,7 @@ import org.lkf.agent.service.AuthAppService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.lkf.agent.common.util.JwtTokenUtil;
+import org.springframework.http.HttpMethod;
 
 /**
  * 认证拦截器。
@@ -40,6 +41,9 @@ public class AuthInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             throw new BusinessException(401, "未登录或令牌无效");

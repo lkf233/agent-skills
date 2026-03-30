@@ -15,6 +15,7 @@ public class KnowledgeBaseFileEntity {
     private String errorMessage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer recallCount;
     private Integer delFlag;
 
     public String getId() {
@@ -103,6 +104,14 @@ public class KnowledgeBaseFileEntity {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getRecallCount() {
+        return recallCount;
+    }
+
+    public void setRecallCount(Integer recallCount) {
+        this.recallCount = recallCount;
     }
 
     public Integer getDelFlag() {

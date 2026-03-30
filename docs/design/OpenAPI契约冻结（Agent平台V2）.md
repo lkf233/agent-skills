@@ -81,8 +81,8 @@
   - 请求：`CreateToolRequestObject{name,description,toolType,configJson,authConfigJson}`
   - 响应：`ApiResponseObject<ToolResponseObject>`
 - `GET /api/tools`
-  - 查询：`pageNo,pageSize,keyword,toolType,status`
-  - 响应：`ApiResponseObject<PageResponseObject<ToolResponseObject>>`
+  - 查询：`keyword,toolType,status`
+  - 响应：`ApiResponseObject<List<ToolResponseObject>>`
 - `GET /api/tools/{toolId}`
   - 响应：`ApiResponseObject<ToolDetailResponseObject>`
 - `PATCH /api/tools/{toolId}`

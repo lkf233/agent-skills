@@ -1,6 +1,7 @@
 package org.lkf.agent.service;
 
 import org.lkf.agent.dto.CreateKnowledgeBaseRequestObject;
+import org.lkf.agent.dto.KnowledgeBaseFilePageResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseFileResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseResponseObject;
 import org.lkf.agent.entity.KnowledgeBaseFileEntity;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -130,18 +132,36 @@ public class KnowledgeBaseAppService {
         return toFileResponseObject(refreshed);
     }
 
-    public List<KnowledgeBaseFileResponseObject> listFiles(String username, String kbId) {
+    public KnowledgeBaseFilePageResponseObject listFiles(String username, String kbId, String parseStatus, String fileName,
+                                                         String sortBy, String sortOrder, Integer page, Integer pageSize) {
         UserAccountEntity userAccountEntity = authAppService.getUserByUsername(username);
         KnowledgeBaseEntity knowledgeBaseEntity = knowledgeBaseMapper.findByIdAndUserId(kbId, userAccountEntity.getId());
         if (knowledgeBaseEntity == null) {
             throw new BusinessException("知识库不存在");
         }
-        List<KnowledgeBaseFileEntity> fileEntities = knowledgeBaseFileMapper.listByKbId(kbId, userAccountEntity.getId());
+        String normalizedStatus = normalizeParseStatus(parseStatus);
+        String normalizedSortBy = normalizeSortBy(sortBy);
+        String normalizedSortOrder = normalizeSortOrder(sortOrder);
+        int normalizedPage = normalizePage(page);
+        int normalizedPageSize = normalizePageSize(pageSize);
+        int offset = (normalizedPage - 1) * normalizedPageSize;
+        Long total = knowledgeBaseFileMapper.countByCondition(kbId, userAccountEntity.getId(), normalizedStatus, normalizeFileName(fileName));
+        List<KnowledgeBaseFileEntity> fileEntities = knowledgeBaseFileMapper.listByCondition(
+                kbId,
+                userAccountEntity.getId(),
+                normalizedStatus,
+                normalizeFileName(fileName),
+                normalizedSortBy,
+                normalizedSortOrder,
+                normalizedPageSize,
+                offset
+        );
         List<KnowledgeBaseFileResponseObject> responseObjectList = new ArrayList<>();
         for (KnowledgeBaseFileEntity fileEntity : fileEntities) {
             responseObjectList.add(toFileResponseObject(fileEntity));
         }
-        return responseObjectList;
+        int totalPages = total == 0 ? 0 : (int) ((total + normalizedPageSize - 1) / normalizedPageSize);
+        return new KnowledgeBaseFilePageResponseObject(normalizedPage, normalizedPageSize, total, totalPages, responseObjectList);
     }
 
     private void enqueueIngestTask(String kbFileId, Long userId) {
@@ -183,7 +203,66 @@ public class KnowledgeBaseAppService {
 
     private KnowledgeBaseFileResponseObject toFileResponseObject(KnowledgeBaseFileEntity entity) {
         return new KnowledgeBaseFileResponseObject(entity.getId(), entity.getFileName(), entity.getMimeType(),
-                entity.getSizeBytes(), entity.getParseStatus(), entity.getErrorMessage());
+                entity.getSizeBytes(), entity.getParseStatus(), entity.getErrorMessage(), entity.getCreatedAt(),
+                entity.getRecallCount());
+    }
+
+    private String normalizeParseStatus(String parseStatus) {
+        if (parseStatus == null || parseStatus.isBlank()) {
+            return null;
+        }
+        String normalized = parseStatus.trim().toUpperCase(Locale.ROOT);
+        if (!"QUEUED".equals(normalized) && !"PARSING".equals(normalized)
+                && !"READY".equals(normalized) && !"FAILED".equals(normalized)) {
+            throw new BusinessException("parseStatus仅支持 QUEUED、PARSING、READY、FAILED");
+        }
+        return normalized;
+    }
+
+    private String normalizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return null;
+        }
+        return fileName.trim();
+    }
+
+    private String normalizeSortBy(String sortBy) {
+        if (sortBy == null || sortBy.isBlank()) {
+            return "createdAt";
+        }
+        String normalized = sortBy.trim();
+        if (!"createdAt".equals(normalized) && !"recallCount".equals(normalized)) {
+            throw new BusinessException("sortBy仅支持 createdAt、recallCount");
+        }
+        return normalized;
+    }
+
+    private String normalizeSortOrder(String sortOrder) {
+        if (sortOrder == null || sortOrder.isBlank()) {
+            return "desc";
+        }
+        String normalized = sortOrder.trim().toLowerCase(Locale.ROOT);
+        if (!"asc".equals(normalized) && !"desc".equals(normalized)) {
+            throw new BusinessException("sortOrder仅支持 asc、desc");
+        }
+        return normalized;
+    }
+
+    private int normalizePage(Integer page) {
+        if (page == null || page < 1) {
+            throw new BusinessException("page必须大于等于1");
+        }
+        return page;
+    }
+
+    private int normalizePageSize(Integer pageSize) {
+        if (pageSize == null || pageSize < 1) {
+            throw new BusinessException("pageSize必须大于等于1");
+        }
+        if (pageSize > 100) {
+            throw new BusinessException("pageSize不能超过100");
+        }
+        return pageSize;
     }
 
 }

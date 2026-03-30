@@ -3,10 +3,12 @@ package org.lkf.agent.controller;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.lkf.agent.common.context.UserContext;
 import org.lkf.agent.common.dto.ApiResponseObject;
 import org.lkf.agent.dto.RegisterRequestObject;
 import org.lkf.agent.service.AuthAppService;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.lkf.agent.common.util.JwtTokenUtil;
 import org.lkf.agent.dto.LoginRequestObject;
 import org.lkf.agent.dto.TokenResponseObject;
+import org.lkf.agent.dto.UserProfileResponseObject;
 
 /**
  * 认证控制器。
@@ -62,5 +65,14 @@ public class AuthController {
     public ApiResponseObject<TokenResponseObject> login(@Valid @RequestBody LoginRequestObject requestObject) {
         String username = authAppService.login(requestObject);
         return ApiResponseObject.success(new TokenResponseObject(JwtTokenUtil.generateToken(username)));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "当前用户信息", description = "根据访问令牌返回当前登录用户基础信息")
+    public ApiResponseObject<UserProfileResponseObject> me() {
+        return ApiResponseObject.success(new UserProfileResponseObject(
+                UserContext.getCurrentUserId(),
+                UserContext.getCurrentUsername()
+        ));
     }
 }

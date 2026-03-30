@@ -9,7 +9,9 @@ import org.lkf.agent.common.dto.ApiResponseObject;
 import org.lkf.agent.dto.CreateKnowledgeBaseRequestObject;
 import org.lkf.agent.dto.KnowledgeBaseFileResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseResponseObject;
+import org.lkf.agent.dto.KnowledgeBaseFilePageResponseObject;
 import org.lkf.agent.service.KnowledgeBaseAppService;
+import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,8 +83,16 @@ public class KnowledgeBaseController {
 
     @GetMapping("/{kbId}/files")
     @Operation(summary = "查询知识库文件列表", description = "查询知识库文件上传与解析状态")
-    public ApiResponseObject<List<KnowledgeBaseFileResponseObject>> listFiles(@PathVariable("kbId") String kbId) {
+    public ApiResponseObject<KnowledgeBaseFilePageResponseObject> listFiles(@PathVariable("kbId") String kbId,
+                                                                             @RequestParam(value = "parseStatus", required = false) String parseStatus,
+                                                                             @RequestParam(value = "fileName", required = false) String fileName,
+                                                                             @RequestParam(value = "sortBy", required = false) String sortBy,
+                                                                             @RequestParam(value = "sortOrder", required = false) String sortOrder,
+                                                                             @RequestParam(value = "page", required = false, defaultValue = "1") @Min(value = 1, message = "page必须大于等于1") Integer page,
+                                                                             @RequestParam(value = "pageSize", required = false, defaultValue = "10") @Min(value = 1, message = "pageSize必须大于等于1") Integer pageSize) {
         String username = UserContext.getCurrentUsername();
-        return ApiResponseObject.success(knowledgeBaseAppService.listFiles(username, kbId));
+        return ApiResponseObject.success(knowledgeBaseAppService.listFiles(
+                username, kbId, parseStatus, fileName, sortBy, sortOrder, page, pageSize
+        ));
     }
 }

@@ -2,6 +2,8 @@ package org.lkf.agent.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalDateTime;
+
 @Schema(description = "知识库文件响应对象")
 public class KnowledgeBaseFileResponseObject {
 
@@ -23,17 +25,25 @@ public class KnowledgeBaseFileResponseObject {
     @Schema(description = "错误信息", example = "")
     private String errorMessage;
 
+    @Schema(description = "上传时间（UTC）", example = "2026-03-30T12:30:00")
+    private LocalDateTime createdAt;
+
+    @Schema(description = "召回次数", example = "0")
+    private Integer recallCount;
+
     public KnowledgeBaseFileResponseObject() {
     }
 
     public KnowledgeBaseFileResponseObject(String id, String fileName, String mimeType, Long sizeBytes, String parseStatus,
-                                           String errorMessage) {
+                                           String errorMessage, LocalDateTime createdAt, Integer recallCount) {
         this.id = id;
         this.fileName = fileName;
         this.mimeType = mimeType;
         this.sizeBytes = sizeBytes;
         this.parseStatus = parseStatus;
         this.errorMessage = errorMessage;
+        this.createdAt = createdAt;
+        this.recallCount = recallCount;
     }
 
     public String getId() {
@@ -82,5 +92,21 @@ public class KnowledgeBaseFileResponseObject {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Integer getRecallCount() {
+        return recallCount;
+    }
+
+    public void setRecallCount(Integer recallCount) {
+        this.recallCount = recallCount;
     }
 }
