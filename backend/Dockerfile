@@ -1,9 +1,9 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY pom.xml .
-RUN mvn -B -ntp dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp dependency:go-offline
 COPY src ./src
-RUN mvn -B -ntp clean package -DskipTests spring-boot:repackage
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp clean package -DskipTests spring-boot:repackage
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

@@ -30,24 +30,24 @@ public class McpController {
     public ResponseEntity<?> handle(@RequestBody JsonNode request, HttpServletRequest httpServletRequest) {
         long startedAt = System.currentTimeMillis();
         String traceId = resolveTraceId(httpServletRequest);
-        String method = readMethod(request);
-        String requestId = readRequestId(request);
+        String requestMethod = readMethod(request);
+        String requestIdText = readRequestId(request);
         logger.info(
                 "mcp request traceId={} method={} requestId={} remoteAddr={} userAgent={} sessionId={} body={}",
                 traceId,
-                method,
-                requestId,
+                requestMethod,
+                requestIdText,
                 safeText(httpServletRequest.getRemoteAddr()),
                 safeText(httpServletRequest.getHeader("User-Agent")),
                 safeText(httpServletRequest.getHeader("mcp-session-id")),
                 compactJson(request)
         );
         if (request == null || !request.isObject()) {
-            return complete(traceId, method, startedAt, ResponseEntity.badRequest().body(errorResponse(null, -32600, "Invalid Request")),
+            return complete(traceId, requestMethod, startedAt, ResponseEntity.badRequest().body(errorResponse(null, -32600, "Invalid Request")),
                     "invalid_request_body");
         }
         if (!"2.0".equals(request.path("jsonrpc").asText(null))) {
-            return complete(traceId, method, startedAt, ResponseEntity.badRequest().body(errorResponse(null, -32600, "Invalid Request")),
+            return complete(traceId, requestMethod, startedAt, ResponseEntity.badRequest().body(errorResponse(null, -32600, "Invalid Request")),
                     "invalid_jsonrpc_version");
         }
         JsonNode idNode = request.get("id");
