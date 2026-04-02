@@ -78,7 +78,7 @@
 
 ### 4.4 Tools
 - `POST /api/tools`
-  - 请求：`CreateToolRequestObject{name,description,toolType,configJson,authConfigJson}`
+  - 请求：`CreateToolRequestObject{name,description,toolType,configJson{endpoint},authConfigJson{bearerToken,apiKeyHeaderName,apiKey,customHeaders|headers[]}}`
   - 响应：`ApiResponseObject<ToolResponseObject>`
 - `GET /api/tools`
   - 查询：`keyword,toolType,status`
@@ -86,44 +86,36 @@
 - `GET /api/tools/{toolId}`
   - 响应：`ApiResponseObject<ToolDetailResponseObject>`
 - `PATCH /api/tools/{toolId}`
-  - 请求：`UpdateToolRequestObject{name,description,status,configJson,authConfigJson}`
+  - 请求：`UpdateToolRequestObject{name,description,status,configJson{endpoint},authConfigJson{bearerToken,apiKeyHeaderName,apiKey,customHeaders|headers[]}}`
   - 响应：`ApiResponseObject<Void>`
 - `DELETE /api/tools/{toolId}`
   - 响应：`ApiResponseObject<Void>`
 - `POST /api/tools/{toolId}/test`
   - 请求：`ToolTestRequestObject{inputJson}`
   - 响应：`ApiResponseObject<ToolTestResponseObject>`
+- `GET /api/tools/{toolId}/remote-tools`
+  - 响应：`ApiResponseObject<ToolRemoteToolsResponseObject{validMcpService,message,toolsJson,rawResponseJson}>`
 
 ## 5. Agent 配置接口
 
 ### 5.1 Agent 基础
 - `POST /api/agents`
-  - 请求：`CreateAgentRequestObject{name,description,avatarUrl,modelConfigJson}`
+  - 请求：`CreateAgentRequestObject{name,description,systemPrompt,avatarUrl,toolIds[],knowledgeBaseIds[]}`
   - 响应：`ApiResponseObject<AgentResponseObject>`
 - `GET /api/agents`
-  - 查询：`pageNo,pageSize,keyword,status`
-  - 响应：`ApiResponseObject<PageResponseObject<AgentResponseObject>>`
+  - 响应：`ApiResponseObject<List<AgentResponseObject>>`
 - `GET /api/agents/{agentId}`
-  - 响应：`ApiResponseObject<AgentDetailResponseObject>`
+  - 响应：`ApiResponseObject<AgentResponseObject{id,name,description,systemPrompt,avatarUrl,status,toolIds,knowledgeBaseIds,updatedAt}>`
 - `PATCH /api/agents/{agentId}`
-  - 请求：`UpdateAgentRequestObject{name,description,avatarUrl,modelConfigJson}`
-  - 响应：`ApiResponseObject<Void>`
-- `DELETE /api/agents/{agentId}`
+  - 请求：`UpdateAgentRequestObject{name,description,systemPrompt,avatarUrl}`
   - 响应：`ApiResponseObject<Void>`
 
 ### 5.2 Agent 绑定资产
-- `PUT /api/agents/{agentId}/skills`
-  - 请求：`BindSkillsRequestObject{skillIds[]}`
-  - 响应：`ApiResponseObject<Void>`
 - `PUT /api/agents/{agentId}/tools`
   - 请求：`BindToolsRequestObject{toolIds[]}`
   - 响应：`ApiResponseObject<Void>`
 - `PUT /api/agents/{agentId}/knowledge-bases`
   - 请求：`BindKnowledgeBasesRequestObject{knowledgeBaseIds[]}`
-  - 响应：`ApiResponseObject<Void>`
-- `POST /api/agents/{agentId}/publish`
-  - 响应：`ApiResponseObject<Void>`
-- `POST /api/agents/{agentId}/archive`
   - 响应：`ApiResponseObject<Void>`
 
 ## 6. 预览对话接口

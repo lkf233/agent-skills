@@ -1,6 +1,7 @@
 package org.lkf.agent.service;
 
 import org.lkf.agent.dto.CreateKnowledgeBaseRequestObject;
+import org.lkf.agent.dto.KnowledgeBaseFileContentResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseFilePageResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseFileResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseResponseObject;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -162,6 +164,33 @@ public class KnowledgeBaseAppService {
         }
         int totalPages = total == 0 ? 0 : (int) ((total + normalizedPageSize - 1) / normalizedPageSize);
         return new KnowledgeBaseFilePageResponseObject(normalizedPage, normalizedPageSize, total, totalPages, responseObjectList);
+    }
+
+    public KnowledgeBaseFileContentResponseObject getFileContent(String username, String kbId, String fileId) {
+        UserAccountEntity userAccountEntity = authAppService.getUserByUsername(username);
+        KnowledgeBaseEntity knowledgeBaseEntity = knowledgeBaseMapper.findByIdAndUserId(kbId, userAccountEntity.getId());
+        if (knowledgeBaseEntity == null) {
+            throw new BusinessException("知识库不存在");
+        }
+        KnowledgeBaseFileEntity fileEntity = knowledgeBaseFileMapper.findByIdAndKbIdAndUserId(fileId, kbId, userAccountEntity.getId());
+        if (fileEntity == null) {
+            throw new BusinessException("文件不存在");
+        }
+        String extension = getFileExtension(fileEntity.getFileName());
+        if (!"txt".equals(extension) && !"md".equals(extension) && !"markdown".equals(extension)) {
+            throw new BusinessException("当前仅支持txt和markdown在线预览");
+        }
+        try {
+            String content = Files.readString(Paths.get(fileEntity.getStoragePath()), StandardCharsets.UTF_8);
+            return new KnowledgeBaseFileContentResponseObject(
+                    fileEntity.getId(),
+                    fileEntity.getFileName(),
+                    fileEntity.getMimeType(),
+                    content
+            );
+        } catch (IOException exception) {
+            throw new BusinessException("读取文件内容失败");
+        }
     }
 
     private void enqueueIngestTask(String kbFileId, Long userId) {

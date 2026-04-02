@@ -5,7 +5,8 @@ spring:
   application:
     name: agent-chat-backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://8.146.230.205:5432/agent_db}
+#    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://8.146.230.205:5432/agent_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/agent_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
@@ -36,3 +37,10 @@ rag:
     dimensions: ${RAG_EMBEDDING_DIMENSIONS:1024}
     timeout-seconds: ${RAG_EMBEDDING_TIMEOUT_SECONDS:3000}
     batch-size: ${RAG_EMBEDDING_BATCH_SIZE:10}
+  chat:
+    base-url: ${RAG_CHAT_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    api-key: ${RAG_CHAT_API_KEY:}
+    model: ${RAG_CHAT_MODEL:qwen-plus}
+    timeout-seconds: ${RAG_CHAT_TIMEOUT_SECONDS:120}
+    temperature: ${RAG_CHAT_TEMPERATURE:0.3}
+    max-tokens: ${RAG_CHAT_MAX_TOKENS:2048}

@@ -16,6 +16,10 @@ public class CreateConversationRequestObject {
     @Schema(description = "会话标题", example = "产品需求讨论")
     private String title;
 
+    @NotBlank(message = "agentId不能为空")
+    @Schema(description = "Agent ID", example = "agent_01HXYZ")
+    private String agentId;
+
     /**
      * 获取会话标题。
      *
@@ -32,5 +36,13 @@ public class CreateConversationRequestObject {
      */
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 }

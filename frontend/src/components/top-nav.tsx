@@ -6,10 +6,10 @@ import { BookOpen, BriefcaseBusiness, Puzzle, Search, Wrench } from "lucide-reac
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/explore", label: "探索", icon: Search },
-  { href: "/workspace/demo", label: "工作台", icon: BriefcaseBusiness },
-  { href: "/knowledge/demo-kb", label: "知识库", icon: BookOpen },
-  { href: "/studio/demo-agent", label: "工具", icon: Wrench },
+  { href: "/explore", matchPrefix: "/explore", label: "探索", icon: Search },
+  { href: "/workspace/demo", matchPrefix: "/workspace", label: "工作台", icon: BriefcaseBusiness },
+  { href: "/knowledge/demo-kb", matchPrefix: "/knowledge", label: "知识库", icon: BookOpen },
+  { href: "/studio/demo-agent", matchPrefix: "/studio", label: "工具", icon: Wrench },
 ];
 
 export function TopNav() {
@@ -39,13 +39,13 @@ export function TopNav() {
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = pathname.startsWith(item.href.replace("/demo", ""));
+            const active = pathname.startsWith(item.matchPrefix);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[13px] text-muted-foreground transition",
+                  "inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[13px] text-muted-foreground transition-colors hover:bg-primary/5 hover:text-foreground",
                   active && "bg-primary/10 text-primary"
                 )}
               >

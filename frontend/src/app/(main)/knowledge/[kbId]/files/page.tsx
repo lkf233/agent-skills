@@ -4,6 +4,9 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -20,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +39,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  getKnowledgeBaseFileContent,
   listKnowledgeBaseFiles,
+  type KnowledgeBaseFileContentResponseObject,
   type KnowledgeBaseFileResponseObject,
   uploadKnowledgeBaseFile,
 } from "@/lib/services/knowledge-base-service";
@@ -90,6 +96,19 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
   return "secondary";
 }
 
+function canPreviewFile(item: KnowledgeBaseFileResponseObject) {
+  const lowerName = item.fileName.toLowerCase();
+  return lowerName.endsWith(".txt") || lowerName.endsWith(".md") || lowerName.endsWith(".markdown");
+}
+
+function isMarkdownFile(item: KnowledgeBaseFileResponseObject | null) {
+  if (!item) {
+    return false;
+  }
+  const lowerName = item.fileName.toLowerCase();
+  return lowerName.endsWith(".md") || lowerName.endsWith(".markdown");
+}
+
 const parseStatusOptions: Array<{ value: string; label: string }> = [
   { value: "", label: "全部" },
   { value: "READY", label: "已就绪" },
@@ -109,6 +128,9 @@ export default function KnowledgeFilesPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<KnowledgeBaseFileResponseObject | null>(null);
+  const [previewData, setPreviewData] = useState<KnowledgeBaseFileContentResponseObject | null>(null);
 
   const listQuery = useQuery({
     queryKey: ["knowledge-base-files", kbId, parseStatus, searchKeyword, sortBy, sortOrder, page, pageSize],
@@ -132,6 +154,17 @@ export default function KnowledgeFilesPage() {
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "上传失败，请稍后重试";
+      toast.error(message);
+    },
+  });
+
+  const previewMutation = useMutation({
+    mutationFn: (fileId: string) => getKnowledgeBaseFileContent(kbId, fileId),
+    onSuccess: (data) => {
+      setPreviewData(data);
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "预览加载失败，请稍后重试";
       toast.error(message);
     },
   });
@@ -163,6 +196,17 @@ export default function KnowledgeFilesPage() {
   };
 
   const parseStatusLabel = parseStatusOptions.find((option) => option.value === parseStatus)?.label ?? "全部";
+
+  const openPreview = (item: KnowledgeBaseFileResponseObject) => {
+    if (!canPreviewFile(item)) {
+      toast.error("当前仅支持txt和markdown在线预览");
+      return;
+    }
+    setPreviewFile(item);
+    setPreviewData(null);
+    setPreviewOpen(true);
+    previewMutation.mutate(item.fileId);
+  };
 
   const renderSortIcon = (field: "createdAt" | "recallCount") => {
     if (sortBy !== field) {
@@ -336,8 +380,17 @@ export default function KnowledgeFilesPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="h-4 w-7 rounded-full bg-muted" />
-                    <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="xs"
+                      className="h-6 px-2 text-[11px]"
+                      onClick={() => openPreview(item)}
+                      disabled={!canPreviewFile(item)}
+                    >
+                      预览
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground" disabled>
                       <SlidersHorizontal className="size-3.5" />
                     </Button>
                   </div>
@@ -393,6 +446,31 @@ export default function KnowledgeFilesPage() {
           ))}
         </div>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{previewFile ? `在线预览：${previewFile.fileName}` : "在线预览"}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] overflow-auto rounded-lg border bg-muted/20 p-4">
+            {previewMutation.isPending ? <p className="text-sm text-muted-foreground">加载中...</p> : null}
+            {!previewMutation.isPending && previewData ? (
+              isMarkdownFile(previewFile) ? (
+                <div className="text-sm leading-6 text-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:leading-9 [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-medium [&_hr]:my-4 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-muted [&_pre]:p-3 [&_table]:my-3 [&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_td]:border [&_td]:p-2 [&_th]:border [&_th]:bg-muted/50 [&_th]:p-2 [&_ul]:list-disc [&_ul]:pl-5">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
+                    {previewData.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground">{previewData.content}</pre>
+              )
+            ) : null}
+            {!previewMutation.isPending && !previewData ? (
+              <p className="text-sm text-muted-foreground">暂无预览内容</p>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

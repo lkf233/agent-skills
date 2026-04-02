@@ -44,6 +44,20 @@ public interface ToolDefMapper {
             "from tool_def where id = #{id} and user_id = #{userId} and del_flag = 0")
     ToolDefEntity findByIdAndUserId(@Param("id") String id, @Param("userId") Long userId);
 
+    @Select({
+            "<script>",
+            "select count(1) from tool_def",
+            "where user_id = #{userId} and del_flag = 0",
+            "<if test='ids != null and ids.size() > 0'>",
+            "and id in",
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>",
+            "#{id}",
+            "</foreach>",
+            "</if>",
+            "</script>"
+    })
+    long countByUserIdAndIds(@Param("userId") Long userId, @Param("ids") List<String> ids);
+
     @Update("update tool_def set name = #{name}, description = #{description}, status = #{status}, " +
             "config_json = cast(#{configJson} as jsonb), auth_config_json = cast(#{authConfigJson} as jsonb), " +
             "updated_at = now() where id = #{id} and user_id = #{userId} and del_flag = 0")

@@ -28,8 +28,10 @@
 ### 2.4 对话与运行域
 - `preview_session`：预览会话（不进入正式会话）。
 - `conversation`：正式会话（新增 `agent_id`）。
-- `message`：正式会话消息。
+- `conversation_message`：正式会话消息。
+- `conversation_summary`：历史压缩摘要。
 - `preview_message`：预览会话消息。
+- `tool_manifest_snapshot`：MCP tools/list 快照缓存。
 - `tool_call_log`：工具调用日志。
 - `skill_exec_log`：技能执行日志。
 
@@ -127,8 +129,10 @@
 - `preview_session`：`id`、`user_id`、`agent_id`、`status`、`snapshot_json`、时间字段、`del_flag`
 - `preview_message`：`id`、`preview_session_id`、`role`、`content`、`tool_call_json`、时间字段、`del_flag`
 - `conversation`：在现有表新增 `agent_id varchar(64) not null`
-- `message`：`id`、`conversation_id`、`user_id`、`agent_id`、`role`、`content`、`tool_call_json`、`trace_id`、时间字段、`del_flag`
-- `tool_call_log`：`id`、`user_id`、`agent_id`、`conversation_id`、`tool_id`、`status`、`latency_ms`、`request_json`、`response_json`、时间字段、`del_flag`
+- `conversation_message`：`id`、`conversation_id`、`user_id`、`role`、`content`、`metadata_json`、`token_input`、`token_output`、`seq_no`、时间字段、`del_flag`
+- `conversation_summary`：`id`、`conversation_id`、`range_start_seq`、`range_end_seq`、`summary_text`、`summary_struct_json`、`version`、时间字段、`del_flag`
+- `tool_manifest_snapshot`：`id`、`tool_def_id`、`manifest_json`、`manifest_hash`、`fetched_at`、`expire_at`、`status`、`error_message`、时间字段、`del_flag`
+- `tool_call_log`：`id`、`conversation_id`、`message_id`、`tool_def_id`、`tool_name`、`status`、`latency_ms`、`request_json`、`response_json`、`created_at`
 - `skill_exec_log`：`id`、`user_id`、`agent_id`、`conversation_id`、`skill_id`、`status`、`latency_ms`、`input_json`、`output_json`、时间字段、`del_flag`
 
 ## 4. 关键业务约束
@@ -153,6 +157,9 @@
 - KB 文件：`QUEUED -> PARSING -> READY/FAILED`
 - 预览会话：`RUNNING -> CLOSED`
 - 正式会话：`ACTIVE -> CLOSED`
+
+## 6. 增量DDL
+- `V12__conversation_agent_id_guard.sql`：为 `conversation` 表补齐 `agent_id` 字段守护迁移，统一保证 `agent_id` 存在、非空、默认值为空串，并创建索引 `idx_conversation_agent_id`。
 
 ## 6. 前后端契约建议
 - 所有请求/响应对象必须加 OpenAPI 注解，并在 Knife4j 可见。

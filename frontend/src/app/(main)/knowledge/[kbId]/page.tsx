@@ -39,6 +39,8 @@ export default function KnowledgePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pendingDeleteKb, setPendingDeleteKb] = useState<KnowledgeBaseResponseObject | null>(null);
   const [editingKb, setEditingKb] = useState<KnowledgeBaseResponseObject | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -130,7 +132,17 @@ export default function KnowledgePage() {
   };
 
   const onDelete = (item: KnowledgeBaseResponseObject) => {
-    deleteMutation.mutate(item.kbId);
+    setPendingDeleteKb(item);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDeleteKb) {
+      return;
+    }
+    deleteMutation.mutate(pendingDeleteKb.kbId);
+    setDeleteDialogOpen(false);
+    setPendingDeleteKb(null);
   };
 
   const openFileList = (item: KnowledgeBaseResponseObject) => {
@@ -221,19 +233,7 @@ export default function KnowledgePage() {
         <p className="text-sm text-muted-foreground">暂无知识库，请先创建一个知识库</p>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="h-[188px] rounded-xl border bg-card p-4 text-card-foreground">
-          <div className="flex h-full flex-col justify-between">
-            <Button className="w-full justify-start" onClick={openCreateDialog}>
-              <Plus className="size-4" />
-              创建知识库
-            </Button>
-            <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-              通过知识库来为模型注入私有知识，并提升回答准确性。
-            </div>
-          </div>
-        </div>
-
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {listQuery.data && listQuery.data.length > 0
           ? listQuery.data.map((item) => (
               <div
@@ -309,6 +309,33 @@ export default function KnowledgePage() {
             ))
           : null}
       </div>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) {
+            setPendingDeleteKb(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>确认删除知识库</DialogTitle>
+            <DialogDescription>
+              {pendingDeleteKb ? `将删除“${pendingDeleteKb.name}”，删除后不可恢复。` : "删除后不可恢复。"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleteMutation.isPending}>
+              取消
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? "删除中..." : "确认删除"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

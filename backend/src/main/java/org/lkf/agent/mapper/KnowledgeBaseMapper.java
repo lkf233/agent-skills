@@ -41,4 +41,18 @@ public interface KnowledgeBaseMapper {
             "updated_at at time zone 'UTC' as updatedAt, del_flag as delFlag " +
             "from knowledge_base where id = #{id} and user_id = #{userId} and del_flag = 0")
     KnowledgeBaseEntity findByIdAndUserId(@Param("id") String id, @Param("userId") Long userId);
+
+    @Select({
+            "<script>",
+            "select count(1) from knowledge_base",
+            "where user_id = #{userId} and del_flag = 0",
+            "<if test='ids != null and ids.size() > 0'>",
+            "and id in",
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>",
+            "#{id}",
+            "</foreach>",
+            "</if>",
+            "</script>"
+    })
+    long countByUserIdAndIds(@Param("userId") Long userId, @Param("ids") List<String> ids);
 }

@@ -79,6 +79,20 @@ export type KnowledgeBaseFilePageResponseObject = {
   records: KnowledgeBaseFileResponseObject[];
 };
 
+type KnowledgeBaseFileContentApiObject = {
+  fileId: string;
+  fileName: string;
+  mimeType: string;
+  content: string;
+};
+
+export type KnowledgeBaseFileContentResponseObject = {
+  fileId: string;
+  fileName: string;
+  mimeType: string;
+  content: string;
+};
+
 function mapKnowledgeBase(item: KnowledgeBaseApiObject): KnowledgeBaseResponseObject {
   return {
     kbId: item.id,
@@ -162,4 +176,11 @@ export async function uploadKnowledgeBaseFile(kbId: string, file: File) {
     },
   });
   return mapKnowledgeBaseFile(data);
+}
+
+export async function getKnowledgeBaseFileContent(kbId: string, fileId: string): Promise<KnowledgeBaseFileContentResponseObject> {
+  return requestData<KnowledgeBaseFileContentApiObject>({
+    method: "GET",
+    url: API_ENDPOINTS.knowledgeBases.fileContent(kbId, fileId),
+  });
 }

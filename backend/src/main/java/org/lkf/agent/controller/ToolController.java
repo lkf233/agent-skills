@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import org.lkf.agent.common.context.UserContext;
 import org.lkf.agent.common.dto.ApiResponseObject;
 import org.lkf.agent.dto.CreateToolRequestObject;
+import org.lkf.agent.dto.ToolManifestSnapshotResponseObject;
 import org.lkf.agent.dto.ToolResponseObject;
+import org.lkf.agent.dto.ToolRemoteToolsResponseObject;
 import org.lkf.agent.dto.ToolTestRequestObject;
 import org.lkf.agent.dto.ToolTestResponseObject;
 import org.lkf.agent.dto.UpdateToolRequestObject;
@@ -84,5 +86,28 @@ public class ToolController {
                                                           @RequestBody(required = false) ToolTestRequestObject requestObject) {
         String username = UserContext.getCurrentUsername();
         return ApiResponseObject.success(toolAppService.testTool(username, toolId, requestObject));
+    }
+
+    @GetMapping("/{toolId}/remote-tools")
+    @Operation(summary = "查询远程MCP工具列表", description = "验证远程MCP服务有效性并返回tools/list工具清单")
+    public ApiResponseObject<ToolRemoteToolsResponseObject> listRemoteTools(@PathVariable("toolId") String toolId) {
+        String username = UserContext.getCurrentUsername();
+        return ApiResponseObject.success(toolAppService.listRemoteTools(username, toolId));
+    }
+
+    @GetMapping("/{toolId}/manifest-snapshot")
+    @Operation(summary = "查询工具清单快照", description = "查询tools/list快照，支持按需刷新过期缓存")
+    public ApiResponseObject<ToolManifestSnapshotResponseObject> getManifestSnapshot(@PathVariable("toolId") String toolId,
+                                                                                      @RequestParam(value = "refreshIfExpired", required = false) Boolean refreshIfExpired) {
+        String username = UserContext.getCurrentUsername();
+        boolean shouldRefreshIfExpired = refreshIfExpired == null || refreshIfExpired;
+        return ApiResponseObject.success(toolAppService.getToolManifestSnapshot(username, toolId, shouldRefreshIfExpired));
+    }
+
+    @PostMapping("/{toolId}/manifest-snapshot/refresh")
+    @Operation(summary = "刷新工具清单快照", description = "主动刷新远程MCP tools/list并覆盖本地快照")
+    public ApiResponseObject<ToolManifestSnapshotResponseObject> refreshManifestSnapshot(@PathVariable("toolId") String toolId) {
+        String username = UserContext.getCurrentUsername();
+        return ApiResponseObject.success(toolAppService.refreshToolManifestSnapshot(username, toolId));
     }
 }

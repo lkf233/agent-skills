@@ -8,6 +8,7 @@ import org.lkf.agent.common.context.UserContext;
 import org.lkf.agent.common.dto.ApiResponseObject;
 import org.lkf.agent.dto.CreateKnowledgeBaseRequestObject;
 import org.lkf.agent.dto.KnowledgeBaseFileResponseObject;
+import org.lkf.agent.dto.KnowledgeBaseFileContentResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseResponseObject;
 import org.lkf.agent.dto.KnowledgeBaseFilePageResponseObject;
 import org.lkf.agent.service.KnowledgeBaseAppService;
@@ -94,5 +95,13 @@ public class KnowledgeBaseController {
         return ApiResponseObject.success(knowledgeBaseAppService.listFiles(
                 username, kbId, parseStatus, fileName, sortBy, sortOrder, page, pageSize
         ));
+    }
+
+    @GetMapping("/{kbId}/files/{fileId}/content")
+    @Operation(summary = "查询知识库文件内容", description = "在线预览txt和markdown文件内容")
+    public ApiResponseObject<KnowledgeBaseFileContentResponseObject> getFileContent(@PathVariable("kbId") String kbId,
+                                                                                     @PathVariable("fileId") String fileId) {
+        String username = UserContext.getCurrentUsername();
+        return ApiResponseObject.success(knowledgeBaseAppService.getFileContent(username, kbId, fileId));
     }
 }

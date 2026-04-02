@@ -21,6 +21,12 @@ public class ConversationResponseObject {
     private String title;
 
     /**
+     * 关联Agent ID。
+     */
+    @Schema(description = "关联Agent ID", example = "agent_01HXYZ")
+    private String agentId;
+
+    /**
      * 默认构造器。
      */
     public ConversationResponseObject() {
@@ -31,10 +37,12 @@ public class ConversationResponseObject {
      *
      * @param id 会话ID
      * @param title 会话标题
+     * @param agentId 关联Agent ID
      */
-    public ConversationResponseObject(String id, String title) {
+    public ConversationResponseObject(String id, String title, String agentId) {
         this.id = id;
         this.title = title;
+        this.agentId = agentId;
     }
 
     /**
@@ -71,5 +79,23 @@ public class ConversationResponseObject {
      */
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    /**
+     * 获取关联Agent ID。
+     *
+     * @return 关联Agent ID
+     */
+    public String getAgentId() {
+        return agentId;
+    }
+
+    /**
+     * 设置关联Agent ID。
+     *
+     * @param agentId 关联Agent ID
+     */
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 }

@@ -20,8 +20,8 @@ public interface ConversationMapper {
      * @param conversationEntity 会话实体
      * @return 影响行数
      */
-    @Insert("insert into conversation(id, user_id, title, status, created_at, updated_at, del_flag) " +
-            "values(#{id}, #{userId}, #{title}, #{status}, now(), now(), 0)")
+    @Insert("insert into conversation(id, user_id, agent_id, title, status, created_at, updated_at, del_flag) " +
+            "values(#{id}, #{userId}, #{agentId}, #{title}, #{status}, now(), now(), 0)")
     int insert(ConversationEntity conversationEntity);
 
     /**
@@ -30,8 +30,18 @@ public interface ConversationMapper {
      * @param userId 用户ID
      * @return 会话列表
      */
-    @Select("select id, user_id as userId, title, status, created_at at time zone 'UTC' as createdAt, " +
+    @Select("select id, user_id as userId, agent_id as agentId, title, status, created_at at time zone 'UTC' as createdAt, " +
             "updated_at at time zone 'UTC' as updatedAt, del_flag as delFlag " +
             "from conversation where user_id = #{userId} and status = 'ACTIVE' and del_flag = 0 order by created_at desc")
     List<ConversationEntity> listByUserId(@Param("userId") Long userId);
+
+    @Select("select id, user_id as userId, agent_id as agentId, title, status, created_at at time zone 'UTC' as createdAt, " +
+            "updated_at at time zone 'UTC' as updatedAt, del_flag as delFlag " +
+            "from conversation where user_id = #{userId} and agent_id = #{agentId} and status = 'ACTIVE' and del_flag = 0 order by created_at desc")
+    List<ConversationEntity> listByUserIdAndAgentId(@Param("userId") Long userId, @Param("agentId") String agentId);
+
+    @Select("select id, user_id as userId, agent_id as agentId, title, status, created_at at time zone 'UTC' as createdAt, " +
+            "updated_at at time zone 'UTC' as updatedAt, del_flag as delFlag " +
+            "from conversation where id = #{id} and user_id = #{userId} and del_flag = 0")
+    ConversationEntity findByIdAndUserId(@Param("id") String id, @Param("userId") Long userId);
 }

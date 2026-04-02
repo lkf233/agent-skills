@@ -17,6 +17,8 @@ public class ConversationEntity {
      */
     private Long userId;
 
+    private String agentId;
+
     /**
      * 会话标题。
      */
@@ -76,6 +78,14 @@ public class ConversationEntity {
      */
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
     }
 
     /**
